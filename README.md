@@ -22,16 +22,34 @@ xE Processes - the Executors: Generate new examples for trainig utilizing the mo
 
 There are three sub-architectures tested. We are comparing their performce and make recomendation for the best performing one: the Iterative-Synchronous MLxE:
 
-1.) Iterative-Synchronious Threading Based (IS TB) - it is our banchark implementation based on modification of a code availabel online.
+1.) Iterative-Synchronious Threading Based (IS TB) - it is our banchark implementation based on modification of a code available online.
 - Iterative - learning is perfomed intermittently with the example generation
 - Synchronious - each executor generates only one example per iteration, waiting idle for closing of all executors and update of the model in given iteration
-- Model Updarte for the Learner and Executors is performed in each iteration
+- Model update for the Learner and Executors is performed at the end of each iteration
 
 2.) Iterative-Synchronious MLxE Based (IS MLxE) - the best performing architecture, used in final implementations of the RL Algorithms
-- due to iterative nature of the architecture there are all cores are used as Executors in Example Generation Phase and one process for Memorizing and Learing Phases 
+- due to iterative nature of the architecture all cores are used as Executors in Example Generation Phase and one process is used for combined Memorizing and Learing Phases 
 
-3.) Iterative-Asynchronious MLxE Based (IA MLxE) - During Example Generation Phase all Executors generate examples till each Executor generates at least one Example. Executors respawn if they finish before all Executors generate their first example.
+3.) Iterative-Asynchronious MLxE Based (IA MLxE) - During Example Generation Phase all Executors generate examples till each Executor generates at least one Example. in other woerds, Executors respawn if they finish before all Executors generate their first example.
 
-4.) On-Line-Asynchronious MLxE Based (OA MLxE) - the Memorizing and Learing Phases are spawned in their own processes and are run in parallel to the Executors. The model is continously updated as iis new verion becomes avaialble form the Learner and Executors pick them up upon initiallizing the next Example Generation
+4.) On-Line-Asynchronious MLxE Based (OA MLxE) - the Memorizing and Learing Phases are spawned in their own processes and are run in parallel to the Executors. The model is continously updated as its new verion becomes avaialble from the Learner and Executors pick it up upon initialization of the next Example Generation
 
 # "Task-at-Hand" Specific Modifications
+
+The "Task-at-Hand" for this project is the GYM's implementation of the Cart Pole Environment. It is the simplest, and thus the fastest, environment to work with that allows for rapid feedback while you learn the existing or explore new approachses to RL. It is also a very flexible environment that allows you to "raise the bar" for your agent with few code modifications. In its base imlementation, your agent is required to be able to keep the pole upright for 200 moves of the cart. We, instead, aim to train an agent that can do so indifinatively (in theory at least) and will learn such level of proficency on a sample of just couple houndreds of games.
+
+In short, cart-pole-v0 enviroment requires the agent to balance a pole on a moving cart by controling the movement of the cart (left or right). The agent gets positive reward of 1 for every move of the cart as long as the pole is standing relatively upward (as measured by the angle of the pole) and by not going beyound the edges of the plane on which the cart moves (think of a table). Once either of the failure conditions is reached the agent gets reward of 0 and the game is reset back to a random inital position. The state is represented with an array(position, velocity, angle, angular-velocity) and there are only two actions (move-left, move-right). 
+
+One of the objectives in development of new Reinforcement Learning algorithms is to design an algorithm that can learn usefull models accross wide range of environments without modification in the set of parameters. While this is a noble objective from the theoretical perspective, it is a limiting factor in real life applications. We should not accept a model for driving a car just becouse it is also capable to fly us to the Space Station. We shold also be open to modifications to the learning algorithms and/or to their implementations that with addition of only couple of lines of code will lead to singificant speedup in learning.
+
+Another motivation for intoduction of the "Task-at-Hand" Specific Modifications is to allow the agent to learn a "proper" behaviour. In many implementations, just achieving the goal of the task is enough to call it a success. In others, the way that such goal is achieved matters as much. For example, you want your car to drive on the streets following certain road rules and not just do it as efficantly as a racing driver would. In the case of the Cart Pole environment, we have traind a lot of "successfull" agents that were able to maintain upright the pole for 10s of thousands of cart moves. But they were doing it in an "akward" way where the pole was almost not moving at all or it was stabilized close to the edges of the plane on which the cart moves. Both behaviours are "unhuman" in a sense that we expect human to play the game trying to stabilize the pole in the middle of the plane and to control it not in a such stiff manner. Thus, we have introduced the following "Task-at-Hand" Specific Modifications:
+
+1.) Modification of the State Representation
+- Addition of the squared position (env.state[0]) - this allows the agent to learn quicker that being close to the center is good for avoiding running out of plane and helps it behave more "naturally".
+2.) Advarse Modification of the Initial Position Parameters - the agent intializes each game by drawing random values for the four state parameters (close to 0 each). We have added a randomly selected conditions that initialize the cart-pole in one of the "dengerous" positions: close to the edge of the palne or leaning to the side heavilly. The probability of the advarse initial condition decreases as trainig progresses similarly to the monotonic deacres in larning rate of the optimizer. This alows the trainig agent to experience advarse conditions more freaqently (a state with much higher informative value that other states, see next point). 
+3.) Modifying the Reward - Note that only the fail condition results in a true learning feedback (no reward). All other states return value of 1, thus the agent cannot know that leaning can be bad until it reaches that threashold angle beyound which the game ends. Thus we have introdcued two modification to the reward
+* Failure "Reward" set to -10 (instead of 0) - to provide the agent with better "incentive" to avoid failure conditions
+* Adjustment to the reward discount factor (the gamma coeffcient) - in RL we are using 
+
+
+
