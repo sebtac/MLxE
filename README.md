@@ -2,7 +2,9 @@
 
 # Objectives of the Project:
 1.) Introduce the MLxE Architecture, a highly efficient, Multiprocessing based implementation of Reinforcement Learning (RL) algorithms that maximizes the utilization of available hardware recourses. It achieves >2x efficiency improvement relative to Threading based implementations in the test environment.
+
 2.) Propose addition of the "Task-at-Hand" specific modifications to the learning process to maximize the learining efficiency
+
 3.) Update the classical implemntations of A3C, RAINBOW and SEC algorithms with recent developments in the field of RL
 
 # MLxE Architecture
