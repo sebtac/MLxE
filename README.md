@@ -15,18 +15,18 @@ M Process - the Memorizer: Manages the Memory of the Learining Agent. It collect
 L Process - the Learner: The core proccess of the Learing Agent responsible for updating model weights through a SGD based algorithm. It consumes the trainig examples prepared by Memorizer and sends updated models to Executors for generation of the next wave of the examples.
 xE Processes - the Executors: Generate new examples for trainig utilizing the model computed by the Learner. There are as many executors (x) as there are cores on the machine you are using minus two (those assigned for the Memorizer and the Learner) thus "xE" in the name of the archtecture. For example, this project was created using the ML6E architecture since my machine has 8 CPU cores. You can execute the Learner's calcualtions on GPU but still one CPU core will be dedicated to the process handing the Learner. 
 
-There are three sub-architectures tested. We are comparing their performce and make recomendation for the best performing one: the Iterative-Asynchronous:
+There are three sub-architectures tested. We are comparing their performce and make recomendation for the best performing one: the Iterative-Synchronous MLxE:
 
-1.) Iterative-Synchronious Threading Based - it is our banchark implementation based on modification of a code availabel online.
+1.) Iterative-Synchronious Threading Based (ISTB) - it is our banchark implementation based on modification of a code availabel online.
 - Iterative - learning is perfomed intermittently with the example generation
 - Synchronious - each executor generates only one example per iteration, waiting idle for closing of all executors and update of the model in given iteration
 - Model Updarte for the Learner and Executors is performed in each iteration
 
-2.) Iterative-Synchronious MLxE Based - the best performing architecture, used in final implementations of the RL Algorithms
+2.) Iterative-Synchronious MLxE Based (IS MLxE) - the best performing architecture, used in final implementations of the RL Algorithms
 - due to iterative nature of the architecture there are all cores are used as Executors in Example Generation Phase and one process for Memorizing and Learing Phases 
 
-3.) Iterative-Asynchronious MLxE Based - During Example Generation Phase all Executors generate examples till each Executor generates at least one Example. Executors respawn if they finish before all Executors generate their first example.
+3.) Iterative-Asynchronious MLxE Based (IA MLxE) - During Example Generation Phase all Executors generate examples till each Executor generates at least one Example. Executors respawn if they finish before all Executors generate their first example.
 
-4.) On-Line-Asynchronious MLxE Based - the Memorizing and Learing Phases are spawned in their own processes and are run in parallel to the Executors. The model is continously updated as iis new verion becomes avaialble form the Learner and Executors pick them up upon initiallizing the next Example Generation
+4.) On-Line-Asynchronious MLxE Based (OA MLxE) - the Memorizing and Learing Phases are spawned in their own processes and are run in parallel to the Executors. The model is continously updated as iis new verion becomes avaialble form the Learner and Executors pick them up upon initiallizing the next Example Generation
 
 # "Task-at-Hand" Specific Modifications
