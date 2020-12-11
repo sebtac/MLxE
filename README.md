@@ -74,8 +74,51 @@ Another motivation for intoduction of the "Task" Specific Modifications is to al
 * Introdcution of non-constant reward discount factor (the gamma coeffcient) - RL, to measure the value of the state or of the action, uses cumulative rewards which are a sum of the imidiate reward in given state and/or for action just taken and the expected sum of future rewards after following such move. Note that in environments with infite horizons (i.e. where the game can last indifinativly and cart-pole is a such game!) the expected cumulative reward can be infinite as well. Infinities are not friendly to RL algorithms thus, we use a discount factor (DF) in front of the Expected Sum of Future Rewards term to limit that value. the DF value is between 0-1, usually close to 1 like .99,.95 or.90. The selection of that value has a practical/conceptual meaning as well as it defines the horizon within which we accumulate the future rewards. The closer the value of DF is to 1 the further ahead we attribute the effects of the current actions. Our attention span increases in a way. We theoretize that in the case of the cartpole attention span of the agent should differ depending on the "saftey" of the state the agent is in. If it is a relatively safe state the agent can think about returns in a long time span with gamma close to 1. If it is a relaively dengerous state, the agent should focus more on imidiate consequences of its actions with smaller values of gamma. Thus we have introduced an algorithm that modifies the value of the discount factor depending on how cloese given state is to the failure condition. #########
 * Introduction of additianal rewards representing a realtive safety of the state. Our agents get additional one point for being at the center of the plane and one for being in perfectly vertical possition. Those rewards are proportional to the current distance of the cart and that of the pole from the center and the vertical positions. Thus the agent can get up to 3 points in each state but if the cart or pole will be at the threshold of failing, the agent will achive reward of 0 for the corresponding reward component. 
 * The combined effect of the three above Reward Function modifications is that the reward assigned to the states increases monotonically in logarithmic fashion as the state is farther away from the failure condition allowing the agent to get more precise sense of the value of the state it is in.
-#######
 
 Here we need to say a word of caution. Such adjustents to the environment can have adverse effects on the quality of the learnt model. The effects here are akin to overspecification of the regular Machine Learning models and might express themsleves by lack of generalization by our learnt model. In other words, if we train the agent toward expressing certain behavior, it might not perform well in real life if the real-life conditions are different from those on which the agent was trained. Had we only emphasised the moving out of plane condition in the training, the agent might have had hard time learning to avoid the pole-failing condition. In the car driving analogy, the agent trained for driving on a highway might not perform well on city streets. But we theoretize that in more complex environments, we could use this familiy of adjustments to teach the agent wide variety of skills in a sequence, focusing on the general skills at the begginig of the training and than expose the agent to a variety of different (but specific) conditions in later iterations of the training. This would be akin to Transfer Learning in the text and vision domains of Deep Learinig.
 
+# Development Details
+
+## Exploring A3C Model
+
+We have started our exploration by utilizing the insights and the code found in the book Deep Reinforcemenrt Learning by Mohit Sewak. Its github reporsitory is:
+https://github.com/mohitsewak/DeepReinforcementLearning
+
+We took the A3C algorithm's implementation in the book as a initial benchmark and performed the follownig steps:
+
+1.) Fixed issues with the code (detailed comments in the code):
+- Calculation of Policy_Loss
+- Utilization of the actual steps taken by the agent in example generation (as opposed to the random search in the original code)
+- this became our base implementation
+
+Agent Implemented in file: ############
+
+2.) Implemented Deep Learning Specific Adjustments to the Model and Hyper-Parameters:
+- Added monotonic decrease in Learing Rate relative to the number of episodes run with:
+    self.alpha_power = 0.998
+    self.alpha_limit = 0.000001
+- Introduced Broken-Dimond-Shaped Model Design and increased the network size: common_network_size=[128,258,512], policy_network_size=[256,128,64], value_network_size=[256,128,64]
+- Changed the Optimizer to RectifiedAdam -- requaires tensorflow_addons
+- Changed Gamma coeffcient to 0.97
+
+Agent Implemented in file: ############
+
+3.) Implemented the "Task" Specific Modifications dicussed above
+
+Agent Implemented in file: ############
+
+The comperative performance analysis shows that the Base-A3C implementation is very unstable. Although, it achieves ability to execute 10K steps in single game, this level of performance is not maintained over time. In itself, this is not suprising as RL training is inherently unstable. Contrary to other families of machine learing models we are presenting the learing agent with subset of possible condintions at any given time so its performace must decrease as the condition profile changes. But it also fails to gain a visible learing trend in a long run suggesting it does not accumulate well the earlier learings throughout the learning process. Modification of Deep Learning Hyper-Parameters stabilizes training a bit and allows the agent to achieve ability to play the game for 50K steps but again such performance is not maintained for long. Ultimately, introduction of the "Task" Specific modification, results in further stabilization of the learing process and in a visible learning trend. But the maximum performance fails to reach the level of the performance reached by by the agent with Hyper-Parameter tuning only.
+
+Here we need to point that the initial performacne of the agent with "Task" Specific Modifications is worse than that of the the other two agents. This has to do with a nature of the modificaiton which introduce random number of states with advarse characteristics and more so at the beggining of the training. But as we can see the agent learns to deal with those situations and maintains its skills in later stages of the training.
+
+The below chart depicts three runs of the learning process, one for each type of the agent. It is shown on logarithmic scale to allow detailed comparison of the agents performace for games with lower number of steps. The lines represent 8-game moving averages to expose the trends in the results, if any. More runs were performed for each scenario and while individual runs might have differed quite significantly from those included in the chart they featured the general characteristics as discussed in the above paragraph.
+
 ![github-small](https://github.com/sebtac/MLxE/blob/c1e187add87d63632a924a1e8339ebf188cc27d5/Sewak%20-%20Models%20Comparison%20-%208-Step%20MA.jpg)
+
+Although, the implemented modifications in the architecure and the algorithm resulted in desired performance improvements, the level of performacne, its stability and reproducatability is still far from what can be expeced in such small and uncomplicated task as Cart-Pole.
+
+# Proto MLxE Architecture
+
+Detailed analysis of the code showed that the books implementation suffers from 
+
+
