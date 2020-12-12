@@ -28,7 +28,7 @@ You can execute the Learner's calcualtions on GPU as well but still one CPU core
 
 There are three sub-architectures tested. We are comparing their performce and make recomendation for the best performing one: the Iterative-Synchronous MLxE:
 
-1.) Iterative-Synchronious Threading Based (IS TB) - it is our banchark implementation based on modification of a code available online.##########
+1.) Iterative-Synchronious Threading Based (IS TB) - it is our banchark implementation based on modification of a code available in the book Deep Reinforcemenrt Learning by Mohit Sewak. Its github reporsitory is: https://github.com/mohitsewak/DeepReinforcementLearning
 - Iterative - learning phase is perfomed intermittently with the example generation phase
 - Synchronious - each executor generates only one example per iteration, waiting idle for closing of all executors and update of the model in given iteration
 - Model update for the Learner and Executors is performed at the end of each iteration
