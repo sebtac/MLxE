@@ -91,7 +91,7 @@ We took the A3C algorithm's implementation in the book as a initial benchmark an
 - Utilization of the actual steps taken by the agent in example generation (as opposed to the random search in the original code)
 - this became our base implementation
 
-Agent Implemented in file: ############
+Agent Implemented in file: a3c_worker_sewak_base.py
 
 2.) Implemented Deep Learning Specific Adjustments to the Model and Hyper-Parameters:
 - Added monotonic decrease in Learing Rate relative to the number of episodes run with:
@@ -101,11 +101,11 @@ Agent Implemented in file: ############
 - Changed the Optimizer to RectifiedAdam -- requaires tensorflow_addons
 - Changed Gamma coeffcient to 0.97
 
-Agent Implemented in file: ############
+Agent Implemented in file: a3c_worker_sewak_DNN_Adjusted.py
 
 3.) Implemented the "Task" Specific Modifications dicussed above
 
-Agent Implemented in file: ############
+Agent Implemented in file: a3c_worker_sewak_Task_Modifications.py
 
 The comperative performance analysis shows that the Base-A3C implementation is very unstable. Although, it achieves ability to execute 10K steps in single game, this level of performance is not maintained over time. In itself, this is not suprising as RL training is inherently unstable. Contrary to other families of machine learing models we are presenting the learing agent with subset of possible condintions at any given time so its performace must decrease as the condition profile changes. But it also fails to gain a visible learing trend in a long run suggesting it does not accumulate well the earlier learings throughout the learning process. Modification of Deep Learning Hyper-Parameters stabilizes training a bit and allows the agent to achieve ability to play the game for 50K steps but again such performance is not maintained for long. Ultimately, introduction of the "Task" Specific modification, results in further stabilization of the learing process and in a visible learning trend. But the maximum performance fails to reach the level of the performance reached by by the agent with Hyper-Parameter tuning only.
 
@@ -117,8 +117,17 @@ The below chart depicts three runs of the learning process, one for each type of
 
 The implemented modifications in the architecure and the algorithm resulted in desired performance improvements nevertheless the level of agent's performacne, its stability and reproductability is still far from what can be expeced in such small and uncomplicated task as Cart-Pole.
 
-# Thread Based MLxE Architecture
+# ISTB Architecture
 
-Detailed analysis of the code showed that the A3C implementation in the book suffers from 
+Detailed analysis of the code showed that the A3C implementation in the book suffers from two issues that we theorethise to contribute to the training instability observed above. 
+
+1.) Lack of true memory buffer - the code resets the momory every time new apisode is initiated and when an update to the model is made (every 10 data generation steps). Thus the effective "batch size" for trainig is maximally 10 and often less than that when multiple threads clean the memory in close succession. The small and variable "batch size" is known to cause training instability.
+
+2.) The model updates are performed with unstable target. Only the central model is being updated with gradients but the gradients are caluclated using worker's (thread specific) model. Thus the target model changes every 10 training steps whenever given thread is raeady to perform an update.
+
+To address the above issues we have modified the A3C code in the following way:
+
+
+
 
 
