@@ -113,7 +113,7 @@ Note that the initial performance of the agent with "Task" Specific Modification
 
 The below chart depicts three runs of the learning process, one for each type of the agent. It is shown on logarithmic scale to allow detailed comparison of the agents performace for games with lower number of steps. The lines represent 8-game moving averages to expose the trends in the results, if any. More runs were performed for each scenario and while individual runs might have differed from those included in the chart they featured the general characteristics as discussed in the above paragraphs.
 
-![github-small](https://github.com/sebtac/MLxE/blob/c1e187add87d63632a924a1e8339ebf188cc27d5/Sewak%20-%20Models%20Comparison%20-%208-Step%20MA.jpg)
+![github-small](https://github.com/sebtac/MLxE/blob/main/Sewak%20-%20Models%20Comparison%20-%208-Step%20MA.jpg)
 
 The implemented modifications in the architecure and the algorithm resulted in desired performance improvements nevertheless the level of agent's performacne, its stability and reproductability is still far from what can be expeced in such small and uncomplicated task as Cart-Pole.
 
