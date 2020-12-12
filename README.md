@@ -22,7 +22,9 @@ M Process - the Memorizer: Manages the Memory of the Learining Agent. It collect
 
 L Process - the Learner: The core proccess of the Learing Agent responsible for updating model weights through a SGD based algorithm. It consumes the trainig examples prepared by Memorizer and sends updated models to Executors for generation of the next wave of the examples.
 
-xE Processes - the Executors: Generate new examples for trainig utilizing the model computed by the Learner. There are as many (x) executors as there are cores on the machine you are using, thus "xE" in the name of the archtecture. This number can be reduced by 2 if the Memorizer and the Learner are imlemented in their own processes. For example, this project was created using the ML6E and ML8E architectures since our machine had 8 CPU cores. You can execute the Learner's calcualtions on GPU as well but still one CPU core will be dedicated to the process handling the Learner. 
+xE Processes - the Executors: Generate new examples for trainig utilizing the model computed by the Learner. There are as many (x) executors as there are cores on the machine you are using, thus "xE" in the name of the archtecture. This number can be reduced by 2 if the Memorizer and the Learner are imlemented in their own processes. For example, this project was created using the ML6E and ML8E architectures since our machine had 8 CPU cores. 
+
+You can execute the Learner's calcualtions on GPU as well but still one CPU core will be dedicated to the process handling the Learner. 
 
 There are three sub-architectures tested. We are comparing their performce and make recomendation for the best performing one: the Iterative-Synchronous MLxE:
 
