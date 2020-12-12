@@ -89,11 +89,13 @@ We took the A3C algorithm's implementation in the book as a initial benchmark an
 1.) Fixed issues with the code (detailed comments in the code):
 - Calculation of Policy_Loss
 - Utilization of the actual steps taken by the agent in example generation (as opposed to the random search in the original code)
-- this became our base implementation
+
+This became our base implementation
 
 Agent Implemented in file: a3c_worker_sewak_base.py
 
 2.) Implemented Deep Learning Specific Adjustments to the Model and Hyper-Parameters:
+- Increased the batch size to 64
 - Added monotonic decrease in Learing Rate relative to the number of episodes run with:
     self.alpha_power = 0.998
     self.alpha_limit = 0.000001
@@ -107,9 +109,11 @@ Agent Implemented in file: a3c_worker_sewak_DNN_Adjusted.py
 
 Agent Implemented in file: a3c_worker_sewak_Task_Modifications.py
 
-The comperative performance analysis shows that the Base-A3C implementation is very unstable. Although, it achieves ability to execute 10K steps in single game, this level of performance is not maintained over time. In itself, this is not suprising as RL training is inherently unstable. Contrary to other families of machine learing models we are presenting the learing agent with subset of possible condintions at any given time so its performace must decrease as the condition profile changes. But it also fails to gain a visible learing trend in a long run suggesting it does not accumulate well the earlier learings throughout the learning process. Modification of Deep Learning Hyper-Parameters stabilizes training a bit and allows the agent to achieve ability to play the game for 50K steps but again such performance is not maintained for long. Ultimately, introduction of the "Task" Specific modification, results in further stabilization of the learing process and in a visible learning trend. But the maximum performance fails to reach the level of the performance reached by by the agent with Hyper-Parameter tuning only.
+The above changes are additive.
 
-Note that the initial performance of the agent with "Task" Specific Modifications is worse than that of the the other two agents. This has to do with a nature of the modificaitons which introduce random number of initial states with advarse characteristics and more so at the beggining of the training. Moreover, in some runs with A3C algorithm, such intialized trainig fails to converge, picking up nicely at the begging of the trainig and than collapsing. Lowering the percent of the adverse initial states can remedy the later behavior but such modfication is undesired from the design point of view. Further work will be performed to analyze the dependance of such behaviour on parameter initialization strategies and the lerning rate decay, two factors that we theoritize to contribute to such behavior. But once the agent picks up the learning, it learns to deal with those situations and maintains its skills in later stages of the training. Further modification to the architecure (discussed below) make the architecture less sensitive to the selection of this hyperparameter. 
+The comperative performance analysis shows that the Base-A3C implementation is very unstable. Although, it achieves ability to execute 10K steps in a single game, this level of performance is not maintained over time. In itself, this is not suprising as RL training is inherently unstable. Contrary to other families of machine learing models, we are presenting the learing agent with subset of possible condintions at any given time so its performace must decrease as the condition profile changes. But it also fails to gain a visible learing trend in a long run suggesting it does not accumulate well the skills gaind early in the training. Modification of Deep Learning Hyper-Parameters stabilizes training and allows the agent to generate visible learning trend. But such agent is able only to play a game for up to 1000 steps. Ultimately, introduction of the "Task" Specific modifications, results in the agent's ability to achie 50K steps per game with visible, although somewhat unstable, training trend. 
+
+Note that the initial performance of the agent with "Task" Specific Modifications is worse than that of the the other two agents. This has to do with a nature of the modificaitons which introduce random number of initial states with advarse characteristics and more so at the beggining of the training. But ultimately the agent learns to deal with those situations and maintains its skills in later stages of the training.
 
 The below chart depicts three runs of the learning process, one for each type of the agent. It is shown on logarithmic scale to allow detailed comparison of the agents performace for games with lower number of steps. The lines represent 8-game moving averages to expose the trends in the results, if any. More runs were performed for each scenario and while individual runs might have differed from those included in the chart they featured the general characteristics as discussed in the above paragraphs.
 
@@ -121,9 +125,9 @@ The implemented modifications in the architecure and the algorithm resulted in d
 
 Detailed analysis of the code showed that the A3C implementation in the book suffers from two issues that we theorethise to contribute to the training instability observed above. 
 
-1.) Lack of true memory buffer - the code resets the momory every time new apisode is initiated and when an update to the model is made (every 10 data generation steps). Thus the effective "batch size" for trainig is maximally 10 and often less than that when multiple threads clean the memory in close succession. The small and variable "batch size" is known to cause training instability.
+1.) Lack of true memory buffer - the code resets the momory every time new apisode is initiated and when an update to the model is made (every 10 game-steps in the book's implementation and 64 game-steps in ours). Thus the effective buffer size is maximally 64 and often less so when threads clean the memory in close succession. The variable "batch size" can congribute to the training instability.
 
-2.) The model updates are performed with unstable target. Only the central model is being updated with gradients but the gradients are caluclated using worker's (thread specific) model. Thus the target model changes every 10 training steps whenever given thread is raeady to perform an update.
+2.) The model updates are performed with unstable target. Only the central model is being updated with gradients but the gradients are caluclated using model currently used by given worker. Since workers make model updates intermitently "whenever they are read", it introduces "confusion" as to what is the goal of the training.
 
 To address the above issues we have modified the A3C code in the following way:
 
