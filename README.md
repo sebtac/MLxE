@@ -1,4 +1,4 @@
-# MLxE: Highly Effcient Architecture for Reinforcement Learning
+# MLxE: Highly Effcient Architecture for Implementation of Reinforcement Learning Algorithms
 
 # Objectives of the Project:
 To intorduce a highly efficient implementation of the Reinforcement Learning (RL) algorithms that takes adventage of both the recent algorithmic developments in the field of RL and maximises the utilization of hardware capabilities available to the RL researcher or architect. This efficiency is achieved via employeeing the following three proposiotions:
