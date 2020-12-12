@@ -11,6 +11,8 @@ To intorduce a highly efficient implementation of the Reinforcement Learning (RL
 
 We show the feasibility and effectiveness of the MLxE Architecture uning the "Task" of Gym's Cart-Pole Environment where we train the agent to play the environment for 50,000 steps after only 8 minutes of training, with only few hundreds game examples, on machine with 8-core CPU and no GPU.
 
+We root our work in the code for the book Deep Reinforcemenrt Learning by Mohit Sewak and refer to it as "The Book" in the text below. Its github reporsitory is: https://github.com/mohitsewak/DeepReinforcementLearning
+
 # MLxE Architecture
 MLxE Architecture is designed for RL learning and research applications with focus on ease of understanding and of modifying underlying RL algorithms (A3C, Rainbow, SAC,...) thus it is implemented in linear fashion with limited use of python programmatical overhead (Classes, Functions,...). 
 
@@ -28,7 +30,7 @@ You can execute the Learner's calcualtions on GPU as well but still one CPU core
 
 There are three sub-architectures tested. We are comparing their performce and make recomendation for the best performing one: the Iterative-Synchronous MLxE:
 
-1.) Iterative-Synchronious Threading Based (IS TB) - it is our banchark implementation based on modification of a code available in the book Deep Reinforcemenrt Learning by Mohit Sewak. Its github reporsitory is: https://github.com/mohitsewak/DeepReinforcementLearning
+1.) Iterative-Synchronious Threading Based (IS TB) - it is our banchark implementation based on modification of a code available in the book.
 - Iterative - learning phase is perfomed intermittently with the example generation phase
 - Synchronious - each executor generates only one example per iteration, waiting idle for closing of all executors and update of the model in given iteration
 - Model update for the Learner and Executors is performed at the end of each iteration
@@ -83,10 +85,7 @@ Here we need to say a word of caution. Such adjustents to the environment can ha
 
 ## Exploring A3C Model
 
-We have started our exploration by utilizing the insights and the code found in the book Deep Reinforcemenrt Learning by Mohit Sewak. Its github reporsitory is:
-https://github.com/mohitsewak/DeepReinforcementLearning
-
-We took the A3C algorithm's implementation in the book as a initial benchmark and performed the follownig steps:
+We have started our exploration by utilizing the A3C algorithm's implementation in the book as a initial benchmark and performed the follownig steps:
 
 1.) Fixed issues with the code (detailed comments in the code):
 - Calculation of Policy_Loss
