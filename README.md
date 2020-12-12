@@ -28,7 +28,7 @@ xE Processes - the Executors: Generate new examples for trainig utilizing the mo
 
 You can execute the Learner's calcualtions on GPU as well but still one CPU core will be dedicated to the process handling the Learner. 
 
-There are three sub-architectures tested. We are comparing their performce and make recomendation for the best performing one: the Iterative-Synchronous MLxE:
+There are four sub-architectures tested. We are comparing their performce and make recomendation for the best performing one: the Iterative-Synchronous MLxE:
 
 1.) Iterative-Synchronious Threading Based (IS TB) - it is our banchark implementation based on modification of a code available in the book.
 - Iterative - learning phase is perfomed intermittently with the example generation phase
