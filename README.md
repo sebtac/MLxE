@@ -141,6 +141,7 @@ To address the above issues, we have further modified the A3C code, mainly:
     - First Executors generate examples and update Memory Buffer than Learner samples memory buffer and performs model updates and shares the resultsing model with the Executor       for the use in the next iteration of example generation
     - All executors generate only one set of examples per iteration
     - learner performs as many model updates per iteration as there are possible unique batches in the memory buffer (default batch size is 64 thus with full memory buffer there       will be 112 batches sampled)
+    
 2.) Implemented the complete Memory Buffer:
 - there is one memory buffer, shared accross all workers
 - it is implementated with deque from python's collections module
