@@ -131,7 +131,25 @@ Detailed analysis of the code showed that the A3C implementation in the book suf
 
 2.) The model updates are performed with unstable target. Only the central model is being updated with gradients but the gradients are caluclated using model currently used by given worker. Since workers make model updates intermitently "whenever they are read", it introduces "confusion" as to what is the goal of the training.
 
-To address the above issues we have modified the A3C code in the following way:
+To address the above issues, we have further modified the A3C code, mainly:
+
+1.) Implemented a MLxE algorithm consiting of:
+- Process 0 assigned to Learner
+- All remainig Processes assigned to Executors
+- Memorizer's function split between Executors and the Learner
+- Iterative-Synchronized Architecure:
+    - First Executors generate examples and update Memory Buffer than Learner samples memory buffer and performs model updates and shares the resultsing model with the Executor       for the use in the next iteration of example generation
+    - All executors generate only one set of examples per iteration
+    - learner performs as many model updates per iteration as there are possible unique batches in the memory buffer (default batch size is 64 thus with full memory buffer there       will be 112 batches sampled)
+2.) Implemented the complete Memory Buffer:
+- there is one memory buffer, shared accross all workers
+- it is implementated with deque from python's collections module
+- the capacity of the Queue (maxlen) is 1024 * Number of Executors thus for the ML7E Thread Based implementation the Memory Buffer is holding up to 7168 cases collected from all Executors and possibly over multiple iterations
+- when the full capacity of the Queue is reached the oldest entries are removed and are substituted with the newest ones
+- training cases are sampled from the memory buffer as many times as there are possible unique batches in the memory buffer
+- when given episod generates more than 1024 examples it saves to the buffer only the last 1024 examples (those the closest to the end state thus the most informative)
+
+
 
 
 
