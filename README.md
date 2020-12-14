@@ -119,7 +119,7 @@ Note that the initial performance of the agent with "Task" Specific Modification
 
 The below chart depicts three runs of the learning process, one for each type of the agent. It is shown on logarithmic scale to allow detailed comparison of the agents performace for games with lower number of steps. The lines represent 8-game moving averages to expose the trends in the results, if any. More runs were performed for each scenario and while individual runs might have differed from those included in the chart they featured the general characteristics as discussed in the above paragraphs.
 
-![github-small](https://github.com/sebtac/MLxE/blob/main/Sewak%20-%20Models%20Comparison%20-%208-Step%20MA.jpg)
+![github-small](https://github.com/sebtac/MLxE/blob/main/Sewak%20-%20Models%20Comparison%20-%208-Games%20MA.jpg)
 
 The implemented modifications in the architecure and the algorithm resulted in desired performance improvements nevertheless the level of agent's performacne, its stability and reproductability is still far from what can be expected in such small and uncomplicated task as Cart-Pole.
 
@@ -155,7 +155,7 @@ To address the above issues, we have further modified the A3C code, mainly:
 
 The ISTB Architecure resulted in significant improvement of the traing process and the agent gaint gaide an ability to play the game for 50K steps after exploring just 350 games. When left learing till 500 games the agent was returinig to the 50K steps level many times with ever higher freqency as the leraning continued. The below chart shows the comparison of the runs for the two approaches: 
 
-![github-small](https://github.com/sebtac/MLxE/blob/main/Sewak%20Task%20Modified%20vs.%20ISTB%20Comparison%20-%208-Step%20MA.jpg)
+![github-small](https://github.com/sebtac/MLxE/blob/main/Sewak%20Task%20Modified%20vs.%20ISTB%20Comparison%20-%208-Games%20MA.jpg)
 
 We, actually, stopped the learining at 500 episodes due to the time it was taking the 8 Thread, 8 CPU cores based implementation of ISTB architecture - 2 hours for the 500 games run. We contribute the performce improvement mostly to the introduction of the constant Target Model but not completelty. When the Target Model was allowed to be updated to the Central Model continously, it still was traing to the 50K level occassionally in similar time span but featured freaquently runs where it did not converge well within 3000 games. Thus we theroretize that two additional factors are responsibel for such perfomarce. First, the fact that also most examples were generated with the arget model (at least later in the trainig) and that the number of model updates has increased in given iteration (to 112 per iteration) as well as to the the higher Batch Size of 64 (was 10).
 
