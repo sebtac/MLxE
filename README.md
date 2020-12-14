@@ -163,9 +163,7 @@ Nevertheless, the are still two factors that introduce inefficency in the curren
 
 ## MLxE Architecture
 
-
-
-
+![github-small](https://github.com/sebtac/MLxE/blob/main/MLxE%20Architectures%20Performance%20Comparison.jpg)
 
 
 
