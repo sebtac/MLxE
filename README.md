@@ -163,8 +163,50 @@ Nevertheless, the are still two factors that introduce inefficency in the curren
 
 ## MLxE Architecture
 
+MLxE Architecurte is very similar to the ISTB architecture with two differences:
+
+1.) Implemented with Multiprocessing Processes - this allows us to address the hardware battleneck cased by Python's implementation of Global Interpreter Lock (GIL). Without going into details, the key consequence of that implementation is that you can utilize only one core of your proecessor (and thus only one Process) when runnig Python programs without special modifications. In other words, you can run your programm only sequentially not in a prallel fashion. Multitheading employed in Sewak's implementation is only partial workaround as it creates multiple threads (not multiple processes) and all are executed within the same process (competeing for its resources). In some applications, just that adjustment makes wonders but in RL applications it is still ineffcient as especially the Example Generation step is highly CPU intensive. Heaving each Executor, Memorizer and Learner implemented as indivdual processes with multiprocessing allows all those workers to be executed in truly prallel fashion. Thus should result in increasingly faster training of RL models as the numeber of CPU Cores increases on the machine. Indeed, we observe it but only up to a point.
+
+2.) Memory Buffer is implemented as a NUMPY array - this is done so to make it easier to share the Memory Buffer accross processes. It will also enable us to implement more advanced versions of Memory Buffer in the future where we will take adventage of numpy's broadcasting capabilities.
+
+We have implemented three MLxE architectures and compared their performance with that of the ISTB Architecture. For comparison, we measured how fast and with how high workload did the Agent learn to execute 50K steps. We looked both at the number of Episodes executed as well as number of model updates. The idea is that we would like the learning process to require as few examples as possible, learn with not many model updates and do so in a minimum time. The last aspect is the most important as given implementation can require more examples and/or model updates but it can still execute faster if it has a well-parallelized architecure. We are showing results as averages of five runs of each architecture.
+
 ![github-small](https://github.com/sebtac/MLxE/blob/main/MLxE%20Architectures%20Performance%20Comparison.jpg)
 
+The results are somewhat surprising:
+
+1.) The best architecture the the IS-MLxE on all three measures. It was expected to be faster than ISTB Architecture but the other two MLxE Architecures should be, at least in thery) faster. The IA-MLxE, generates more examples per iteration, thus providing more variatey in the examples and exhausting memory buffer faster. The OA-MLxE should benefit from highest rate of example generation as well as near-contious model updates.
+
+2.) IS-MLxE converges only twice as fast as the ISTB. While it still proves that Multiprocessing based implementation is preffered to that based on Multithreading in RL applications, it does not gain the 8-fold speed gain theoretically promised by fully parallel implementation. Partialy it is caused by the iterative nature of the implementation but more importantly, it reaveals the extensive overhead associated with Multiprocessing implementation. In essence, it takes more effort to communicate between processes than within a process. Furthermore when sharing resources accross processes we need to make sure it can be done in a thread safe manner where one process does not overide part of the action of the other proccess. We use locks for that purpose and each acquire() and realese() lock operation adds to the delays and the overhead.
+
+3.) Additionaly, MLxE implementation gain performance by heaving being stripped of any programatical overhead and lack of model saving functionality. This will be added in future iterations. 
+
+3.) Part of the gain over the ISTB implementation can also be explained with the lareger Batch-Size. We are using 128 example steps inthe LMxE implemnetation and only 64 in the ISTB. We found out that that such choices stabilize the traing process for both implementation. We do not have a good explonation as to why as the only difference between the two archtectures is their process vs. thread based implementation. We will explore it in more details.
+
+4.) Superior Performance of the IS-MLxE over the other two MLxE implementation is equaly hard to explain. We think that it has to do mainly with some interplay between the frequency of the model updates, and the batch size. We will definativelly explore it futher especially in the case of the OA-MLxE, which shows a huge potential. Its example generation speed is magnitudes higher than that of the IS-MLxE architecute. It is also more effiecient in the learning phase but it still requires twice as much of the wall-time to converge. Something prevents it from exporting the new skills to the Executors. The bottleneck might be Memorizer which might introduce a delay in how quickly new examples are accessible to the learner, causing that only small percantage of the examples available to the learner are based on fairly recent models.
+
+# Next Steps
+
+1.) Implement REINFOCE and SAC algorithms
+
+2.) Update the algorithm impementations with:
+-
+-
+-
+3.) Explore further architecture enhancments aspecially that concenring the OA-MLxE Architecture
+
+4.) Add complete functionality to the MLxE implementations (model saving, replay)
+
+# How to Use MLxE
+
+1.) Download the files
+2.) Make sure you have installed
+- tensorflow
+- tensorflow-addons
+- gym
+
+3.) use the a3c_master_sewak.py file to run all basic A3C implementation inclding the ISTB by modifying selection at the top of the file
+4.) use architecture specifc MLxE files to run each implementation - all modules (model, memeory Buffer, workers) are implemented within each of the architecure specific files. This is done so to make it easy to follow the data flow during training and to exemine the interplay between various elements of the implementation.
 
 
 
