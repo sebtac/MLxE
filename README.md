@@ -5,7 +5,7 @@ To introduce a highly efficient implementation of the Reinforcement Learning (RL
 
 1.) MLxE Architecture, a highly efficient, Multiprocessing based implementation of RL algorithms. It achieves >2x efficiency improvement relative to Threading based implementations in the test environment.
 
-2.) Update to the classical implementations of A3C, RAINBOW and SEC algorithms with recent developments in the field of RL such as #########
+2.) Update to the classical implementations of A3C algorithm to improve its performance comparable to that of the RAINBOW, Reactor and IMPALA architectures
 
 3.) Addition of the "Task" specific modifications to the learning process to maximize the learning efficiency
 
@@ -44,17 +44,18 @@ There are four sub-architectures tested. We are comparing their performance and 
 
 4.) On-Line-Asynchronous MLxE Based (OA MLxE) - the Memorizing and Learning Phases are spawned in their own processes and are run in parallel to the Executors. The model is continuously updated and its new version becomes immediately available to Executors for initialization of the next Example Generation.
 
-# Algorithmic Updates
+![github-small](https://github.com/sebtac/MLxE/blob/main/MLxE%20vs.%20DQN%2C%20A3C%2C%20REACTOR.jpg)
 
-This project implemented the following RL Algorithms:
-1.) A3C
-2.) Rainbow
-3.) SAC
+# A3C Implementation Updates
 
-Subsequently, we have updated their paper based implementations with recent methodological developments in the field of RL, mainly:
-1.)############
-2.)###########
-3.)#############
+This project implemented the following updates to the A3C Implementation:
+1.)	Prioritized Memory Buffer implementation as an numpy array, which allowed to:
+a.	Base the priority of extracting experience from Memory Buffer three factors:
+i.	“Age” of the experience (Inversely)
+ii.	Discounted Reward (Inversely)
+iii.	TD-Error (Proportionally)
+b.	Efficiently and continuously update TD-Error for the whole memory buffer with the current main model
+
 
 We discuss the impact of such improvements on our test environment.
 
