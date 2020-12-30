@@ -283,11 +283,12 @@ The final implementation of the A3C algorithm with the MLxE-IS Architecture is i
 -	TensorFlow-addons
 -	Gym
 
-3.)	use the a3c_master_sewak.py file to run all basic A3C implementation including the ISTB by modifying selection at the top of the file
+3.)	Use the a3c_master_sewak.py file to run all basic A3C implementation including the ISTB by modifying selection at the top of the file
 
-4.)	use architecture specific MLxE files to run each implementation - all modules (model, memory Buffer, workers) are implemented within each of the architecture specific files. This is done so to make it easy to follow the data flow during training and to examine the interplay between various elements of the implementation.
+4.)	Use architecture specific MLxE files to run each implementation - all modules (model, memory Buffer, workers) are implemented within each of the architecture specific files. This is done so to make it easy to follow the data flow during training and to examine the interplay between various elements of the implementation.
 
-1.)	For the tests of the individual A3C adjustment use the files with the “Development” in the name. We have kept the all debugging print() statements for ease of exploration.
+5.)	For the tests of the individual A3C adjustment use the files with the “Development” in the name. We have kept the all debugging print() statements for ease of exploration.
 
-2.)	For the final A3C MLxE implementation use the file: 
+6.)	For the final A3C MLxE implementation use the file: 
+
 A3C MLxE-IS - PRB + MMUF + Reversed e-Greedy.py
