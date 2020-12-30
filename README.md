@@ -84,28 +84,26 @@ This project implemented the following updates to the A3C Implementation:
 1.)	Multi-Factor Priority Memory Buffer Weights based on three factors:
 
 a.	The “Age” of an example
-
-	Where “Age” is defined as the count of how many iterations given experience is in the Memory Buffer
-	“Age” Weight is inversely-proportional to the “Age”
+-	Where “Age” is defined as the count of how many iterations given experience is in the Memory Buffer
+-	“Age” Weight is inversely-proportional to the “Age”
 
 b.	The “Risk Level” of an example
-
-	Where “Risk Level” is defined as the reward achieved in given example, which in turn is a good approximation of the “Risk Level” due to Task-Specific implementation of the Reward Function (see below)
-	“Risk Level” Weight is inversely-proportional to the “Risk Level”
+-	Where “Risk Level” is defined as the reward achieved in given example, which in turn is a good approximation of the “Risk Level” due to Task-Specific implementation of the Reward Function (see below)
+-	“Risk Level” Weight is inversely-proportional to the “Risk Level”
 
 c.	The “Current” TD Error of an example
 
-	Where “Current” stands for using the current Main (Trained) Model from the end of the previous iteration.
-	The TD Error is computed for all Experience examples in the Memory Buffer at the begging of each iteration
-	TD Error Weight is proportional to the TD Error
+-	Where “Current” stands for using the current Main (Trained) Model from the end of the previous iteration.
+-	The TD Error is computed for all Experience examples in the Memory Buffer at the begging of each iteration
+-	TD Error Weight is proportional to the TD Error
 
 2.)	The Reversed E-Greedy Policy (REG Policy)
 
-o	Contrary to the original implementation of the E-Greedy algorithm, we have found that using the greedy policy at higher rate toward the begging of the training followed by increased usage of the Informed-Random Policy stabilizes the training and increases the guarantee of convergence.
+-	Contrary to the original implementation of the E-Greedy algorithm, we have found that using the greedy policy at higher rate toward the begging of the training followed by increased usage of the Informed-Random Policy stabilizes the training and increases the guarantee of convergence.
 
 3.)	Minimum Model Update Frequency per Iteration of 64
 
-o	We show that increasing the re-sampling rate of the Memory Buffer Experiences toward the beginning of training speeds up the training. 
+-	We show that increasing the re-sampling rate of the Memory Buffer Experiences toward the beginning of training speeds up the training. 
 
 We discuss the impact of such improvements on our test environment.
 
