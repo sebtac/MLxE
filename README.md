@@ -10,13 +10,11 @@ To introduce an architecture for highly efficient implementation of the Reinforc
 3.) Implementation of the memory buffer as Numpy array to take advantage of Numpy’s broadcasting capabilities for rapid updates to the priority weights on complete memory buffer.
 
 We present the feasibility and effectiveness of the MLxE Architecture using the "Task" of Gym's Cart-Pole Environment where we train the agent to play the environment for 50,000 steps after only 9 minutes of training with only 140 example episodes (games) on machine with 8-core CPU and no GPU. We update the classical implementation of A3C algorithm with ideas from the RAINBOW algorithm to achieve performance improvements comparable to that of the Reactor and IMPALA architectures. We propose further updates to those algorithms such as:
+
 1.)	Multi-Factor Priority Memory Buffer Weights based on three factors:
-
-a.	The “Age” of an example
-
-b.	The “Risk Level” of an example
-
-c.	The “Current” TD Error of an example
+-	The “Age” of an example
+-	The “Risk Level” of an example
+-	The “Current” TD Error of an example
 
 2.)	The Reversed E-Greedy Policy (REG Policy)
 
@@ -87,31 +85,27 @@ This project implemented the following updates to the A3C Implementation:
 
 a.	The “Age” of an example
 
-i.	Where “Age” is defined as the count of how many iterations given experience is in the Memory Buffer
-
-ii.	“Age” Weight is inversely-proportional to the “Age”
+	Where “Age” is defined as the count of how many iterations given experience is in the Memory Buffer
+	“Age” Weight is inversely-proportional to the “Age”
 
 b.	The “Risk Level” of an example
 
-i.	Where “Risk Level” is defined as the reward achieved in given example, which in turn is a good approximation of the “Risk Level” due to Task-Specific implementation of the Reward Function (see below)
-
-ii.	“Risk Level” Weight is inversely-proportional to the “Risk Level”
+	Where “Risk Level” is defined as the reward achieved in given example, which in turn is a good approximation of the “Risk Level” due to Task-Specific implementation of the Reward Function (see below)
+	“Risk Level” Weight is inversely-proportional to the “Risk Level”
 
 c.	The “Current” TD Error of an example
 
-i.	Where “Current” stands for using the current Main (Trained) Model from the end of the previous iteration.
-
-ii.	The TD Error is computed for all Experience examples in the Memory Buffer at the begging of each iteration
-
-iii.	TD Error Weight is proportional to the TD Error
+	Where “Current” stands for using the current Main (Trained) Model from the end of the previous iteration.
+	The TD Error is computed for all Experience examples in the Memory Buffer at the begging of each iteration
+	TD Error Weight is proportional to the TD Error
 
 2.)	The Reversed E-Greedy Policy (REG Policy)
 
-a.	Contrary to the original implementation of the E-Greedy algorithm, we have found that using the greedy policy at higher rate toward the begging of the training followed by increased usage of the Informed-Random Policy stabilizes the training and increases the guarantee of convergence.
+o	Contrary to the original implementation of the E-Greedy algorithm, we have found that using the greedy policy at higher rate toward the begging of the training followed by increased usage of the Informed-Random Policy stabilizes the training and increases the guarantee of convergence.
 
 3.)	Minimum Model Update Frequency per Iteration of 64
 
-a.	We show that increasing the re-sampling rate of the Memory Buffer Experiences toward the beginning of training speeds up the training. 
+o	We show that increasing the re-sampling rate of the Memory Buffer Experiences toward the beginning of training speeds up the training. 
 
 We discuss the impact of such improvements on our test environment.
 
@@ -240,13 +234,10 @@ The results are somewhat intriguing:
 
 Heaving the MLxE Architecture established, we were able to efficiently test the updates to the A3C algorithm. We performed all the below work in less than 20h including coding, analysis and multiple runs of a model with the same parameters.
 We have tested adding the following elements of the RINBOW algorithm me to the A3C Algorithm:
-1.)	(Reversed) e-Greedy Policy
-
-2.)	TD(n)
-
-3.)	Noisy Nets
-
-4.)	Priority Memory Buffer
+-	(Reversed) e-Greedy Policy
+-	TD(n)
+-	Noisy Nets
+-	Priority Memory Buffer
 
 We plan to implement the Distributional RL next but we have also added the Minimum Model Update Frequency per Iteration of 64. The changes had the following impact on the performance of our implementation:
 1.)	TD(n) had only minor impact when using the TD(1) setting. We theorize that the impact of that modification is limited since our implementation of the Discounter Reward already takes into account the return from the complete episode and reflects well the “safety” of the state. We conclude that slight improvement in training by shifting the return by one step indicates that we could implement a bit more aggressive discounting in calculation of the Discounted Reward but the impact is minor enough so that we do not implement it in the final version of the algorithm in regard of the speed of calculations.
@@ -262,13 +253,10 @@ We plan to implement the Distributional RL next but we have also added the Minim
 6.)	While the sample efficiency and the training efficiency has seen continuous improvement, the execution time has increased. This is due to the computational complexity of the algorithm modifications. Since computation is usually cheaper than the example generation we value the later aspect more in choosing the “best” algorithm. Definitively, further gains can be achieved with programmatical adjustment to our implementations which we will explore in the future. For example given the “large” number of model updates, we expect that GPU based implementation of the Learner should provide further performance boost.
 
 The best A3C algorithm implementation was found to be that based on:
-1.)	MLxE-IS Architecture
-
-2.)	Three-Factor Priority Memory Buffer Weights
-
-3.)	Minimum Model Update Steps of 64
-
-4.)	Reversed e-Greedy Policy
+-	MLxE-IS Architecture
+-	Three-Factor Priority Memory Buffer Weights
+-	Minimum Model Update Steps of 64
+-	Reversed e-Greedy Policy
 
 It is important to note that implementation based on the first three items was the best performing overall. We decided to add the Reversed e-Greedy Policy as it provided additional convergence guarantees. None of the (10) runs of the model failed to converge. But one of the runs took twice as many episodes to learn as the others. Increasing that measure to 150. Using the trimmed average (where the best and the worst run was excluded) returned the performance of 140 episodes. This indicates that the comparison process would gain from averaging over higher number of runs of the same model but in the interest of time we keep it as is.
 
@@ -293,17 +281,15 @@ The final implementation of the A3C algorithm with the MLxE-IS Architecture is i
 
 2.)	Make sure you have installed
 
-a.	TensorFlow
-
-b.	TensorFlow-addons
-
-c.	Gym
+-	TensorFlow
+-	TensorFlow-addons
+-	Gym
 
 3.)	use the a3c_master_sewak.py file to run all basic A3C implementation including the ISTB by modifying selection at the top of the file
 
 4.)	use architecture specific MLxE files to run each implementation - all modules (model, memory Buffer, workers) are implemented within each of the architecture specific files. This is done so to make it easy to follow the data flow during training and to examine the interplay between various elements of the implementation.
 
-5.)	For the tests of the individual A3C adjustment use the files with the “Development” in the name. We have kept the all debugging print() statements for ease of exploration.
+1.)	For the tests of the individual A3C adjustment use the files with the “Development” in the name. We have kept the all debugging print() statements for ease of exploration.
 
-6.)	For the final A3C MLxE implementation use the file:
-    A3C MLxE-IS - PRB + MMUF + Reversed e-Greedy.py
+2.)	For the final A3C MLxE implementation use the file: 
+A3C MLxE-IS - PRB + MMUF + Reversed e-Greedy.py
