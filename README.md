@@ -1,15 +1,20 @@
 # MLxE: Highly Efficient Architecture for Implementation of Reinforcement Learning Algorithms
 
 # Objectives of the Project:
-To introduce a highly efficient implementation of the Reinforcement Learning (RL) algorithms that takes advantage of both the recent algorithmic developments in the field of RL and maximizes the utilization of hardware capabilities available to the RL researcher or architect. This efficiency is achieved via employing the following three propositions:
+To introduce an architecture for highly efficient implementation of the Reinforcement Learning (RL) algorithms that maximizes the utilization of hardware capabilities available to the RL Researcher or RL Architect and allows for rapid development and testing of RL algorithms. This efficiency is achieved via employing the following propositions:
 
-1.) MLxE Architecture, a highly efficient, Multiprocessing based implementation of RL algorithms. It achieves >2x efficiency improvement relative to Threading based implementations in the test environment.
+1.) MLxE Architecture, a highly efficient, Multiprocessing based architecture for implementation of RL algorithms. It achieves >2x efficiency improvement relative to Threading based implementations in the test environment.
 
-2.) Update to the classical implementations of A3C algorithm to improve its performance comparable to that of the RAINBOW, Reactor and IMPALA architectures
+2.) Addition of the "Task" specific modifications to the learning process to maximize the learning efficiency
 
-3.) Addition of the "Task" specific modifications to the learning process to maximize the learning efficiency
+3.) Implementation of the memory buffer as Numpy array to take advantage of Numpy’s broadcasting capabilities for rapid updates to the priority weights on complete memory buffer.
 
-We show the feasibility and effectiveness of the MLxE Architecture using the "Task" of Gym's Cart-Pole Environment where we train the agent to play the environment for 50,000 steps after only 8 minutes of training, with only few hundreds game examples, on machine with 8-core CPU and no GPU.
+We present the feasibility and effectiveness of the MLxE Architecture using the "Task" of Gym's Cart-Pole Environment where we train the agent to play the environment for 50,000 steps after only 9 minutes of training with only 140 example episodes (games) on machine with 8-core CPU and no GPU. We update the classical implementation of A3C algorithm with ideas from the RAINBOW algorithm to achieve performance improvements comparable to that of the Reactor and IMPALA architectures. We propose further updates to those algorithms such as:
+1.)	Multi-Factor Priority Memory Buffer Weights based on three factors:
+a.	The “Age” of an example
+b.	The “Risk Level” of an example
+c.	The “Current” TD Error of an example
+2.)	The Reversed E-Greedy Policy (REG Policy)
 
 We root our work in the code for the book Deep Reinforcement Learning by Mohit Sewak and refer to it as "The Book" in the text below. Its GitHub repository is: https://github.com/mohitsewak/DeepReinforcementLearning
 
@@ -24,11 +29,11 @@ M Process - the Memorizer: Manages the Memory of the Learning Agent. It collects
 
 L Process - the Learner: The core process of the Learning Agent responsible for updating model weights through a SGD based algorithm. It consumes the training examples prepared by Memorizer and sends updated models to Executors for generation of the next wave of the examples.
 
-xE Processes - the Executors: Generate new examples for training utilizing the model computed by the Learner. There are as many (x) executors as there are cores on the machine you are using, thus "xE" in the name of the architecture. This number can be reduced by 2 if the Memorizer and the Learner are implemented in their own processes. For example, this project was created using the ML6E and ML8E architectures since our machine had 8 CPU cores. 
+xE Processes - the Executors: Generate new examples for training utilizing the model computed by the Learner. There are as many (x) executors as there are cores on the machine you are using, thus "xE" in the name of the architecture. This number is reduced by 2 if the Memorizer and the Learner are implemented in their own processes. For example, this project was created using the ML6E and ML8E architectures since our machine had 8 CPU cores. 
 
 You can execute the Learner's calculations on GPU as well but still one CPU core will be dedicated to the process handling the Learner. 
 
-There are four sub-architectures tested. We are comparing their performance and make recommendation for the best performing one: the Iterative-Synchronous MLxE:
+There are four sub-architectures tested. We are comparing their performance and make recommendation for the best performing one for the A3C-Based Algorithm: the Iterative-Synchronous MLxE:
 
 1.) Iterative-Synchronous Threading Based (ISTB) - it is our benchmark implementation based on modification of a code available in the book.
 - Iterative - learning phase is performed intermittently with the example generation phase
@@ -43,21 +48,8 @@ There are four sub-architectures tested. We are comparing their performance and 
 3.) Iterative-Asynchronous MLxE Based (IA MLxE) - During Example Generation Phase all Executors generate examples till each Executor generates at least one Example. In other words, Executors start generation of another example if they finish their previous example before all Executors finished generating their first example in given iteration.
 
 4.) On-Line-Asynchronous MLxE Based (OA MLxE) - the Memorizing and Learning Phases are spawned in their own processes and are run in parallel to the Executors. The model is continuously updated and its new version becomes immediately available to Executors for initialization of the next Example Generation.
-
+The comparison of the variants of MLxE architecture to that of the DQN, A3C and the Reactor looks as follows:
 ![github-small](https://github.com/sebtac/MLxE/blob/main/MLxE%20vs.%20DQN%2C%20A3C%2C%20REACTOR.jpg)
-
-# A3C Implementation Updates
-
-This project implemented the following updates to the A3C Implementation:
-1.)	Prioritized Memory Buffer implementation as an numpy array, which allowed to:
-a.	Base the priority of extracting experience from Memory Buffer three factors:
-i.	“Age” of the experience (Inversely)
-ii.	Discounted Reward (Inversely)
-iii.	TD-Error (Proportionally)
-b.	Efficiently and continuously update TD-Error for the whole memory buffer with the current main model
-
-
-We discuss the impact of such improvements on our test environment.
 
 # "Task" Specific Modifications
 
@@ -82,6 +74,26 @@ Another motivation for introduction of the "Task" Specific Modifications is to a
 * The combined effect of the three above Reward Function modifications is that the reward assigned to the states increases monotonically in logarithmic fashion as the state is farther away from the failure condition allowing the agent to get more precise sense of the value of the state it is in.
 
 Here we need to say a word of caution. Such adjustments to the environment can have adverse effects on the quality of the learnt model. The effects here are akin to overspecification of the regular Machine Learning models and might express themselves by lack of generalization by our learnt model. In other words, if we train the agent toward expressing certain behavior, it might not perform well in real life if the real-life conditions are different from those on which the agent was trained. Had we only emphasized the moving out of plane condition in the training, the agent might have had hard time learning to avoid the pole-failing condition. In the car driving analogy, the agent trained for driving on a highway might not perform well on city streets. But we theorize that in more complex environments, we could use this family of adjustments to teach the agent wide variety of skills in a sequence, focusing on the general skills at the beginning of the training and than expose the agent to a variety of different (but specific) conditions in later iterations of the training. This would be akin to Transfer Learning in the text and vision domains of Deep Learning.
+
+# A3C Implementation Updates
+
+This project implemented the following updates to the A3C Implementation:
+1.)	Multi-Factor Priority Memory Buffer Weights based on three factors:
+a.	The “Age” of an example
+i.	Where “Age” is defined as the count of how many iterations given experience is in the Memory Buffer
+ii.	“Age” Weight is inversely-proportional to the “Age”
+b.	The “Risk Level” of an example
+i.	Where “Risk Level” is defined as the reward achieved in given example, which in turn is a good approximation of the “Risk Level” due to Task-Specific implementation of the Reward Function (see below)
+ii.	“Risk Level” Weight is inversely-proportional to the “Risk Level”
+c.	The “Current” TD Error of an example
+i.	Where “Current” stands for using the current Main (Trained) Model from the end of the previous iteration.
+ii.	The TD Error is computed for all Experience examples in the Memory Buffer at the begging of each iteration
+iii.	TD Error Weight is proportional to the TD Error
+2.)	The Reversed E-Greedy Policy (REG Policy)
+a.	Contrary to the original implementation of the E-Greedy algorithm, we have found that using the greedy policy at higher rate toward the begging of the training followed by increased usage of the Informed-Random Policy stabilizes the training and increases the guarantee of convergence.
+3.)	Minimum Model Update Frequency per Iteration of 64
+a.	We show that increasing the re-sampling rate of the Memory Buffer Experiences toward the beginning of training speeds up the training. 
+We discuss the impact of such improvements on our test environment.
 
 # Development Details
 
@@ -134,15 +146,16 @@ Detailed analysis of the code showed that the A3C implementation in the book suf
 
 To address the above issues, we have further modified the A3C code, mainly:
 
-1.) Implemented a MLxE algorithm consisting of:
+1.) Implemented a MLxE architecture consisting of:
 - Process 0 assigned to Learner
 - All remaining Processes assigned to Executors
 - Memorizer's function split between Executors and the Learner
 - Iterative-Synchronized Architecture:
-    - First Executors generate examples and update Memory Buffer than Learner samples memory buffer and performs model updates and shares the resulting model with the Executor       for the use in the next iteration of example generation
-    - All executors generate only one set of examples per iteration
-    - Learner performs as many model updates per iteration as there are possible unique batches in the memory buffer (default batch size is 64 thus with full memory buffer there       will be 112 batches sampled)
-- The Target Model in a model update is held constant and set to the one used in generation of the examples in the current Iteration. Keeping target model constant is a well established practice to reduce a variance of the estimates and thus making the model training process more stable. The intuitive explanation of such approach is that by heaving the target model constant, all model updates aim to improve the models ability to match the given target. Were we changing the target our training process would be "chasing" different goal at each iteration of the model update making the training process more unstable.
+    - First Executors generate examples and update Memory Buffer than Learner samples memory buffer and performs model updates and shares the resulting model with the Executor for the use in the next iteration of example generation
+    - Each executor generates only one set of examples per iteration
+    - Learner performs as many model updates per iteration as there are possible unique batches in the memory buffer (default batch size is 64 thus with full memory buffer there will be 112 batches sampled), but re-sampling of the experience across batches is possible.
+2.) Using only one Target Model and one Main Model
+- Using only one Learner allowed to work with a single copy of the Target Model stabilizing the training. The Target Models is the same as the one used in generation of the examples in the current Iteration. Keeping target model constant is a well established practice to reduce a variance of the estimates and thus making the model training process more stable. The intuitive explanation of such approach is that by heaving the target model constant, all model updates aim to improve the models ability to match the given target. Were we changing the target our training process would be "chasing" different goal at each iteration of the model update making the training process more unstable.
     
 2.) Implemented the complete Memory Buffer:
 - there is one memory buffer, shared across all workers
@@ -158,13 +171,16 @@ The ISTB Architecture resulted in significant improvement of the training proces
 
 ![github-small](https://github.com/sebtac/MLxE/blob/main/Sewak%20Task%20Modified%20vs.%20ISTB%20Comparison%20-%208-Games%20MA.jpg)
 
-We, actually, stopped the learning at 500 episodes due to the time it was taking the 8 Thread, 8 CPU cores based implementation of ISTB architecture - 2 hours for the 500 games run. We contribute the performance improvement mostly to the introduction of the constant Target Model but not completely. When the Target Model was allowed to be updated to the Central Model continuously, it still was training to the 50K level occasionally in similar time span but featured frequently runs where it did not converge well within 3000 games. Thus we theorize that two additional factors are responsible for such performance. First, the fact that also most examples were generated with the target model (at least later in the training) and that the number of model updates has increased in given iteration (to 112 per iteration) as well as to the higher Batch Size of 64 (was 10).
+We, actually, stopped the learning at 500 episodes due to the time it was taking the 8 Thread, 8 CPU cores based implementation of ISTB architecture - 2 hours for the 500 games run. We contribute the performance improvement mostly to the introduction of the single Target Model but not completely. When the Target Model was allowed to be updated to the Main Model continuously, it was still training to the 50K level occasionally in similar time span but featured frequently runs where it did not converge well within 3000 games. Thus we theorize that the following factors are responsible for such performance:
+-	most examples were generated with the target model (at least later in the training)
+-	the number of model updates has increased in given iteration (to 112 per iteration)
+-	the higher Batch Size of 64 (was 10).
 
 Nevertheless, the are still two factors that introduce inefficiency in the current implementation: Thread Based implementation and the iterative-synchronous nature of the architecture.
 
 ## MLxE Architecture
 
-MLxE Architecture is very similar to the ISTB architecture but with two differences:
+MLxE Architecture is very similar to the ISTB architecture but with three differences:
 
 1.) Multiprocessing Implementation - this allows us to address the hardware bottleneck cased by Python's use of Global Interpreter Lock (GIL). Without going into details, the key consequence of that implementation is that you can utilize only one core of your processor (and thus only one Process) when running Python programs without special modifications. In other words, you can run your program only sequentially not in a parallel fashion. Multithreading employed in Sewak's implementation is only partial workaround as it creates multiple threads (not multiple processes) and all are executed within the same process (competing for its resources). In some applications, just that adjustment makes wonders but in RL applications it is still inefficient as especially the Example Generation step is highly CPU intensive. Heaving each Executor, Memorizer and Learner implemented as individual processes with multiprocessing allows all those workers to be executed in truly parallel fashion. Thus it should result in increasingly faster training of RL models as the number of CPU Cores increases on the machine. Indeed, we observe it but only up to a point.
 
@@ -176,54 +192,86 @@ We have implemented three MLxE architectures and compared their performance with
 
 We are showing results as averages of five runs of each architecture.
 
-
 ![github-small](https://github.com/sebtac/MLxE/blob/main/MLxE%20Architectures%20Performance%20Comparison.jpg)
 
 The results are somewhat intriguing:
 
-1.) While the OA-MLxE (lr-0.001) Architecture is often the fastest (6 Minutes for the CartPole Environment) we choose the IS-MLxE Architecture as the strongest one as it also features lower variability of in run-times while being only slightly less efficient (8 Minutes for CPE) than the OA-MLxE (lr-0.001) Architecture. Moreover, it is easier to control the details of the IS-MLxE  architecture and track how changes in it impact the performance. Since this is architecture is intended more as a research and learning tool, we value those aspects more. But the OA-MLxE (lr-0.001) Architecture should be considered as a candidate for the bases of the production implementations. Once there is not need to explore it should provide better performance overall. We will continue exploring ways of stabilizing that architecture. 
+1.) While the OA-MLxE (lr-0.001) Architecture is often the fastest (6 Minutes for the CartPole Environment) we choose the IS-MLxE Architecture as the strongest one as it also features lower variability of in run-times while being only slightly less efficient (8 Minutes for CPE) than the OA-MLxE (lr-0.001) Architecture. Moreover, it is easier to control the details of the IS-MLxE  architecture and track how changes in it impact the performance. Since this architecture is tailored toward research and learning applications, we value those aspects more. But the OA-MLxE (lr-0.001) Architecture should be considered as a candidate for base implementation in production. Once there is no need to explore, it should provide better performance overall. We will continue exploring ways of stabilizing that architecture. 
 
-2.) IS-MLxE Architecture performs also better against the IA-MLxE Architecture. And it does so on all three measures. It is so against expectations as the higher variability of the example base and faster saturation of memory buffer by the IA-MLxE Architecture was theorized to lead to faster convergence rate. Possibly, inclusion of unfinished examples (especially in the earlier, shorter executions) might introduce a bit us uncertainty as to the value of the observed states. We will test it in future iterations
+2.) IS-MLxE Architecture performs also better against the IA-MLxE Architecture. And it does so on all three measures. It does so against expectations as the higher variability of the example base and faster saturation of memory buffer by the IA-MLxE Architecture was theorized to lead to faster convergence rate. Possibly, inclusion of unfinished examples (especially in the earlier, shorter executions) might introduce a bit of uncertainty to the value of the observed states. We will test it in future iterations
 
 2.) IS-MLxE converges only twice as fast as the ISTB. While it still proves that Multiprocessing based implementation is preferred to that based on Multithreading in RL applications, it does not achieve the 8-fold speed gain theoretically promised by fully parallel implementation. Partially it is caused by the iterative nature of the implementation but more importantly, it reveals the extensive overhead associated with Multiprocessing implementation. In essence, it takes more effort to communicate between processes than within a process. Furthermore when sharing resources across processes we need to make sure it can be done in a thread safe manner where one process does not override part of the action of the other process. We use locks for that purpose and each acquire() and release() lock operation adds to the delays and the overhead.
 
-3.) Additionally, MLxE implementation gain performance by heaving being stripped of any programmatic overhead and lack of model saving functionality. This will be added in future iterations. 
+3.) Additionally, MLxE implementation gain performance by heaving being stripped of any programmatic overhead and lack of model saving functionality. This will be added in future iterations for completeness of the implementation. 
 
-3.) Part of the gain over the ISTB implementation can also be explained with the larger Batch-Size. We are using 128 example steps in the MLxE implementation and only 64 in the ISTB. We found out that that such choices stabilize the training process for both implementation. We do not have a good explanation as to why as the only difference between the two architectures is their process vs. thread based implementation. We will explore it in more details.
+4.) Part of the gain over the ISTB implementation can also be explained with the larger Batch-Size. We are using 128 example steps in the MLxE implementation and only 64 in the ISTB. We found out that that such choices stabilize the training process for both implementation. We do not have a good explanation as to why as the only difference between the two architectures is their process vs. thread based implementation. We will explore it in more details.
 
-4.) Initially we have tested the OA-MLxE Architecture with Learning Rate of 0.0001, same as all other implementations. In such case, it underperforms the IS-MLxE Architecture, which came as surprise. We theorized that higher variability in the examples and continues updates to the model would lead to speedier convergence. We have tested the following adjustment to improve its performance:
+5.) Initially we have tested the OA-MLxE Architecture with Learning Rate of 0.0001, same as all other implementations. In such case, it underperforms the IS-MLxE Architecture, which came as surprise. We theorized that higher variability in the examples and continues updates to the model would lead to speedier convergence. We have tested the following adjustment to improve its performance:
 
 -  “Freezing” the Target Model for couple iterations (from 2 to 128) , in essence making architecture more similar in that of the other tested architectures. But there was no improvement
 
-- Resetting the main model to the best performing at a given time to “promote” the best performing model in the training. Although no particular gain has been registered,  we observed certain stabilization of learning process (less collapses in training performance). We theorize that it is due to the simple nature of the CartPole Task and thus there is just not enough time in training for gains to materialize. We do not include such modification in the official implementation of the algorithms those for now in interest of speedier execution.
+- Resetting the main model to the best performing at a given time to “promote” the best performing model in the training. Although no particular gain has been registered,  we observed certain stabilization of learning process (less collapses in training performance). We theorize that it is due to the simple nature of the CartPole Task and thus there is just not enough time in training for gains to materialize. In interest of speedier execution, we do not include such modification in the official implementation of the algorithms those for now.
 
-- Increasing the Learning Rate to 0.001, which created the (generally) best performing architecture but too inconsistently to our liking. This modification became part of our official implementation of the OA-MLxE Architecture 
+- Increasing the Learning Rate to 0.001, which created the (generally) best performing architecture but too inconsistently to our liking. This modification became part of our official implementation only for the OA-MLxE Architecture 
 
 - Increasing the Batch Size to 512, which provided some subtle performance improvement over that achieved by the Learning Rate adjustment but also added to decreased consistency 
 
+## Updating A3C Algorithms with elements of the RAINBOW algorithm
+
+Heaving the MLxE Architecture established, we were able to efficiently test the updates to the A3C algorithm. We performed all the below work in less than 20h including coding, analysis and multiple runs of a model with the same parameters.
+We have tested adding the following elements of the RINBOW algorithm me to the A3C Algorithm:
+1.)	(Reversed) e-Greedy Policy
+2.)	TD(n)
+3.)	Noisy Nets
+4.)	Priority Memory Buffer
+We plan to implement the Distributional RL next but we have also added the Minimum Model Update Frequency per Iteration of 64. The changes had the following impact on the performance of our implementation:
+1.)	TD(n) had only minor impact when using the TD(1) setting. We theorize that the impact of that modification is limited since our implementation of the Discounter Reward already takes into account the return from the complete episode and reflects well the “safety” of the state. We conclude that slight improvement in training by shifting the return by one step indicates that we could implement a bit more aggressive discounting in calculation of the Discounted Reward but the impact is minor enough so that we do not implement it in the final version of the algorithm in regard of the speed of calculations.
+
+2.)	NoisyNets slowed down the training to as many as 500 Training Episodes, 3000 Learning Iterations and 12 Minutes of Execution Time. But it offered improved convergence guarantees. Some parameters of our implementations led to as many as 50% failed convergences. With NoisyNets we observed no failures of convergence but the convergence time was twice as long as the previous best implantation thus NoisyNets are not part of our final A3C implementation
+
+3.)	e-Greedy Policy had no positive impact on the training. To our surprise though, the “Reversed” version of the algorithm did. The “Reversed” reflects the fact that we allow the Greedy Policy to be used more frequently toward the beginning of the training followed by increased use of the Informed-Random Policy. The “Informed” stands for the use of the softmax derived policy based on the logits of the current model. Thus we allow to take the not-optimal action according to the current policy but with probability defined by the current model. We theorize that as the model learns it becomes better in distinguishing the bad move from the good one thus making such choice more deterministic/greedy. It should also allow for either action to be taken if their relative value is similar in given state leading to wider experience base. Allowing the more frequent use of the Greedy action toward the begging of training makes the learning process more On-Policy like when the accumulated learnings are small and thus stabilizes the training.
+
+4.)	Minimum Model Update Steps per Iteration had a tremendous impact on training. We have achieved convergence with only 170 training episodes on average. It is 50% improvement over the previous best MLxE implementation. Initially we set the number of model update steps to be such that the re-sampling is limited. But allowing for such at the early stages of training had a tremendous impact on training. It is important to note that increasing that value further led to better performance. With 256-512 updates per iteration the model converged with as little as 50 training examples. But the frequency of failed convergences has increased to unacceptable level.
+
+5.)	Priority Memory Buffer offered the final performance improvement. Using the Three-Factor Priority Weights allowed for convergence in 140 iterations (additional 15-20% improvement). We have tested impact of each of the factors individually as well as in pairs but the best performing combination was that based on the three factors used together.
+
+6.)	While the sample efficiency and the training efficiency has seen continuous improvement, the execution time has increased. This is due to the computational complexity of the algorithm modifications. Since computation is usually cheaper than the example generation we value the later aspect more in choosing the “best” algorithm. Definitively, further gains can be achieved with programmatical adjustment to our implementations which we will explore in the future. For example given the “large” number of model updates, we expect that GPU based implementation of the Learner should provide further performance boost.
+
+The best A3C algorithm implementation was found to be that based on:
+1.)	MLxE-IS Architecture
+2.)	Three-Factor Priority Memory Buffer Weights
+3.)	Minimum Model Update Steps of 64
+4.)	Reversed e-Greedy Policy
+It is important to note that implementation based on the first three items was the best performing overall. We decided to add the Reversed e-Greedy Policy as it provided additional convergence guarantees. None of the (10) runs of the model failed to converge. But one of the runs took twice as many episodes to learn as the others. Increasing that measure to 150. Using the trimmed average (where the best and the worst run was excluded) returned the performance of 140 episodes. This indicates that the comparison process would gain from averaging over higher number of runs of the same model but in the interest of time we keep it as is.
+
+The graphs below compares the initial implementation of the A3C algorithms using the MLxE-IS architecture with its version after implementation of all of the above updates:
+
+![github-small]( https://github.com/sebtac/MLxE/blob/main/A3C%20MLxE-IS%20Performance.jpg)
+The final implementation of the A3C algorithm with the MLxE-IS Architecture is in file A3C MLxE-IS - PRB + MMUF + Reversed e-Greedy.py
+
 # Next Steps
 
-1.) Implement REINFOCE and SAC algorithms
+1.) Implement RAINBOW and SAC algorithms
 
-2.) Update the algorithm implementations with:
--
--
--
+2.) Update the A3C implementation with Distributional RL
+
 3.) Explore further architecture enhancements especially that concerning the OA-MLxE Architecture
 
 4.) Add complete functionality to the MLxE implementations (model saving, replay)
 
 # How to Use MLxE
 
-1.) Download the files
-2.) Make sure you have installed
-- TensorFlow
-- TensorFlow-addons
-- gym
+1.)	Download the files
 
-3.) use the a3c_master_sewak.py file to run all basic A3C implementation including the ISTB by modifying selection at the top of the file
-4.) use architecture specific MLxE files to run each implementation - all modules (model, Memory Buffer, workers) are implemented within each of the architecture specific files. This is done so to make it easy to follow the data flow during training and to examine the interplay between various elements of the implementation.
+2.)	Make sure you have installed
+a.	TensorFlow
+b.	TensorFlow-addons
+c.	Gym
 
+3.)	use the a3c_master_sewak.py file to run all basic A3C implementation including the ISTB by modifying selection at the top of the file
 
+4.)	use architecture specific MLxE files to run each implementation - all modules (model, memory Buffer, workers) are implemented within each of the architecture specific files. This is done so to make it easy to follow the data flow during training and to examine the interplay between various elements of the implementation.
 
+5.)	For the tests of the individual A3C adjustment use the files with the “Development” in the name. We have kept the all debugging print() statements for ease of exploration.
 
+6.)	For the final A3C MLxE implementation use the file: 
